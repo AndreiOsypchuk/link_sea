@@ -1,10 +1,10 @@
 import mongoose, { CallbackError } from "mongoose";
 import { User } from "./user.schema";
+import { LinkList, linkListType } from "./linkList.schema";
 import { encrypt } from "../controller/util";
 
 interface CreateUserProps {
-  firstName: string;
-  lastName: string;
+  handle: string;
   email: string;
   password: string;
 }
@@ -21,7 +21,7 @@ export class Database {
   }
 
   static CreateConnection(): void {
-    const uri = process.env.DEV ? process.env.DB_TEST : process.env.DB_PROD
+    const uri = process.env.DEV ? process.env.DB_TEST : process.env.DB_PROD;
     if (uri) mongoose.connect(uri);
     else throw new Error("No database uri was provided");
     Database.Connection = mongoose.connection;
@@ -40,8 +40,14 @@ export class Database {
   ): Promise<void> {
     try {
       const hash = await encrypt(data.password);
-      if (await User.countDocuments({ email: data.email })) {
-        dbCallback(new Error("user already exitst"), null);
+      if (
+        (await User.countDocuments({ email: data.email })) &&
+        (await User.countDocuments({ handle: data.handle }))
+      ) {
+        dbCallback(
+          new Error("User with this handle or email already exists"),
+          null
+        );
         return;
       }
       const newUser: any = new User({ ...data, password: hash });
@@ -56,8 +62,12 @@ export class Database {
   static async GetUser(email: string, dbCallback: dbCallbackFn): Promise<void> {
     try {
       User.findOne({ email }, async (e: any, res: any) => {
+        const list: linkListType | null = await LinkList.findOne({
+          owner: res.info._id,
+        });
         if (!res) dbCallback(new Error("Wrong email or password"), null);
-        dbCallback(e, res.info);
+        if (!list) dbCallback(new Error("No list was found"), null);
+        if (list) dbCallback(e, { ...res.info, links: list.links });
       });
     } catch (e: any) {
       throw new Error(e.message);
@@ -68,6 +78,20 @@ export class Database {
     try {
       User.find(async (e: any, res: any) => {
         dbCallback(e, res);
+      });
+    } catch (e: any) {
+      throw new Error(e.message);
+    }
+  }
+
+  static async CreateLinkList(
+    userId: string,
+    dbCallback: dbCallbackFn
+  ): Promise<void> {
+    try {
+      const newLinkList = new LinkList({ owner: userId });
+      newLinkList.save(async (e: CallbackError, result: any) => {
+        dbCallback(e, result);
       });
     } catch (e: any) {
       throw new Error(e.message);

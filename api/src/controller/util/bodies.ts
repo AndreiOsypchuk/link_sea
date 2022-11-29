@@ -1,8 +1,7 @@
 import { RequestField } from "./request.fields";
 export default {
   Register: [
-    RequestField.FIRST_NAME,
-    RequestField.LAST_NAME,
+    RequestField.HANDLE,
     RequestField.EMAIL,
     RequestField.PASSWORD,
   ],

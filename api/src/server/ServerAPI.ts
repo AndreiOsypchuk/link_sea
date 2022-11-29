@@ -26,8 +26,8 @@ export class ServerAPI {
     );
   }
 
-  public EnableRouter(): void {
-    this.API.use(this.Router);
+  public EnableRouter(prefix : string = ''): void {
+    this.API.use(prefix, this.Router);
   }
 
   public GetRouter(): express.Router {

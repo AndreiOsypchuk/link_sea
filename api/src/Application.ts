@@ -20,7 +20,7 @@ export class Application {
 
   public Run(): void {
     Database.CreateConnection();
+    Application.s_Server.EnableRouter('/api');
     Application.s_Server.Start();
-    Application.s_Server.EnableRouter();
   }
 }
