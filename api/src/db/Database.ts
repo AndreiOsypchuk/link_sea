@@ -21,7 +21,8 @@ export class Database {
   }
 
   static CreateConnection(): void {
-    if (process.env.DB_HOST) mongoose.connect(process.env.DB_HOST);
+    const uri = process.env.DEV ? process.env.DB_TEST : process.env.DB_PROD
+    if (uri) mongoose.connect(uri);
     else throw new Error("No database uri was provided");
     Database.Connection = mongoose.connection;
     Database.Connection.once("open", () =>
