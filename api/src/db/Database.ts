@@ -8,7 +8,11 @@ interface CreateUserProps {
   email: string;
   password: string;
 }
-
+interface CreateLinkProps {
+  name: string;
+  id: string;
+  href: string;
+}
 type dbCallbackFn = (e: CallbackError, resobj: any) => void;
 
 export class Database {
@@ -93,6 +97,29 @@ export class Database {
       newLinkList.save(async (e: CallbackError, result: any) => {
         dbCallback(e, result);
       });
+    } catch (e: any) {
+      throw new Error(e.message);
+    }
+  }
+
+  static async GetLinkList(userId: string, dbCallback: dbCallbackFn) {
+    try {
+      LinkList.findOne({ owner: userId }, (e: CallbackError, result: any) => {
+        dbCallback(e, result);
+      });
+    } catch (e: any) {
+      throw new Error(e.message);
+    }
+  }
+
+  static async CreateLink(data: CreateLinkProps, dbCallback: dbCallbackFn) {
+    try {
+      console.log(data);
+      const newLink = await LinkList.updateOne(
+        { owner: data.id },
+        { $push: { links: { name: data.name, href: data.href } } }
+      );
+      dbCallback(null, newLink);
     } catch (e: any) {
       throw new Error(e.message);
     }

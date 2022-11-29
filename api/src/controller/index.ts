@@ -86,18 +86,29 @@ class AuthController {
   }
 }
 //===============================================================================================
-//=========================================AUTH==================================================
+//=========================================API==================================================
 //===============================================================================================
 @Controller("/links")
 class LinksController {
-  @get("/create")
+  @post()
   @use(protectedRoute)
+  @assure(BodyType.CreateLink)
   async Create(req: Request, res: Response) {
     try {
-      await Database.ListUsers(async (e: any, result: any) => {
-        if (e) {
-          return res.status(500).json({ message: e.message, success: false });
-        }
+      await Database.CreateLink(req.body, (e: any, result: any) => {
+        res.status(200).json(result);
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message, success: false });
+    }
+  }
+
+  @get()
+  @use(protectedRoute)
+  async GetList(req: Request, res: Response) {
+    try {
+      console.log(req.body);
+      await Database.GetLinkList(req.body.id, (e: any, result: any) => {
         res.status(200).json(result);
       });
     } catch (e: any) {

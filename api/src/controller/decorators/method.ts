@@ -9,7 +9,7 @@ export enum Method {
 
 const method =
   (m: string) =>
-  (path: string) =>
+  (path: string = "") =>
   (proto: any, key: string, _desc: PropertyDescriptor) => {
     Reflect.defineMetadata("path", path, proto, key);
     Reflect.defineMetadata("method", m, proto, key);
