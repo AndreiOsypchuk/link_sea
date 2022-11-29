@@ -19,7 +19,6 @@ export const Controller =
       const path: string = Reflect.getMetadata("path", target.prototype, key);
       const middlewares =
         Reflect.getMetadata("middlewares", target.prototype, key) || [];
-      console.log(middlewares);
 
       Application.GetRouter()[method](
         prefix + path,

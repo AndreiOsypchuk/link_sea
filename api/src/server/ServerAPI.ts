@@ -1,4 +1,5 @@
 import express, { Express } from "express";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 export class ServerAPI {
   private API: Express;
@@ -14,6 +15,7 @@ export class ServerAPI {
   private Use(): void {
     this.API.use(cors());
     this.API.use(express.json());
+    this.API.use(cookieParser());
   }
 
   public Start(): void {
