@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./dist/index.js",
-    "dev:win": "$env:DEV=true && nodemon --exec ts-node ./src/index.ts",
+    "dev:win": "($env:DEV='true') -and (nodemon --exec ts-node ./src/index.ts)",
     "dev:linux": "export DEV=true && nodemon --exec ts-node ./src/index.ts",
     "build": "tsc"
   },
