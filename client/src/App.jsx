@@ -1,31 +1,33 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
+import styled from "styled-components";
 
+const StyledButton = styled.button`
+  display: inline-block;
+  border: none;
+  border-radius: 4px;
+  background-color: ${({ inverted }) =>
+    inverted ? `none` : `hsl(200, 98%, 40%)`};
+
+  transition: 0.2s ease-out;
+  font-size: 0.86rem;
+  color: ${({ inverted }) => (inverted ? `hsl(200, 98%, 40%)` : `whitesmoke`)};
+  border: 2px solid hsl(200, 98%, 40%);
+  padding: 0.4rem 0.8rem;
+  letter-spacing: 0.02rem;
+  font-weight: 500;
+  min-height: 1rem;
+  min-width: 1rem;
+  :hover {
+    background-color: hsl(200, 98%, 45%);
+    border: 2px solid hsl(200, 98%, 45%);
+    color: whitesmoke;
+    cursor: pointer;
+  }
+`;
 export const App = () => {
-  const [count, setCount] = useState(0);
-
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1 className="text-blue-600">Vi888te + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+    <>
+      <StyledButton inverted>Sign Up</StyledButton>
+      <StyledButton>Sign In</StyledButton>
+    </>
   );
 };
