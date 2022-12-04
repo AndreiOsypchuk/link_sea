@@ -1,4 +1,3 @@
-export * from "./use";
-export * from "./method";
 export * from "./controller";
+export * from "./methods";
 export * from "./assure";
