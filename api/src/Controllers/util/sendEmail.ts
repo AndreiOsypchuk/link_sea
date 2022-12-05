@@ -43,7 +43,9 @@ export const sendResetEmail = (
     to,
     subject: "Password reset",
     html: `
-    <a href='http://localhost:4000/api/auth/reset?token=${token}'>reset password</a>
+    <h1>Hello</h1>
+    <p>Click here to reset your password</p>
+    <a href='${process.env.HOST_URL}/api/auth/reset?token=${token}'>reset password</a>
     `,
   };
   transporter.sendMail(
