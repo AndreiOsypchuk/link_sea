@@ -85,6 +85,38 @@ export class Database {
         cb(other, null);
       }
     }
-    // const match = compare(user.password, data.password);
+  }
+
+  public static async GetUserId(email: string, cb: DBCallback) {
+    const user: any = await User.findOne({ email });
+    if (!user) {
+      cb(null, new DbError({ message: "Email is incorrect", status: 400 }));
+    } else {
+      const { _id } = user._doc;
+      cb(_id, null);
+    }
+  }
+
+  public static async ResetUserPassword(
+    id: string,
+    newPass: string,
+    cb: DBCallback
+  ) {
+    const count: any = await User.countDocuments({ _id: id });
+    if (!count) {
+      cb(
+        null,
+        new DbError({
+          message: "Could not find user with this id",
+          status: 400,
+        })
+      );
+    } else {
+      const hash = await encrypt(newPass);
+      const user = await User.findOneAndUpdate({ _id: id }, { password: hash });
+      user?.save((er: any, res: any) => {
+        cb(res, er);
+      });
+    }
   }
 }

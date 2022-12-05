@@ -3,5 +3,7 @@ declare namespace NodeJS {
     DB_TEST: string;
     DB_PROD: string;
     DEV: boolean;
+    EMAIL_HOST: string;
+    EMAIL_PASS: string;
   }
 }
