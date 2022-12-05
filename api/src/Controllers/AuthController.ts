@@ -1,35 +1,7 @@
 import { Request, Response } from "express";
 import { Controller, post, get, assure } from "./decorators";
-import {
-  BodyType,
-  tokenize,
-  sendEmail,
-  sendResetEmail,
-  authorize,
-} from "./util";
+import { BodyType, tokenize, sendResetEmail, authorize } from "./util";
 import { Database, DbError } from "../Database";
-
-// import nodemailer from "nodemailer";
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: "shyersoft@gmail.com",
-//     pass: "hjcagbzvafdlncrx",
-//   },
-// });
-// const sendEmail = (to: string, subject: string, text: string) => {
-//   const mailOptions = {
-//     from: "shyersoft@gmail.com",
-//     to,
-//     subject,
-//     text,
-//   };
-
-//   transporter.sendMail(mailOptions, (err: any, info: any) => {
-//     if (err) console.log(err);
-//     else console.log("Email sent:", info.response);
-//   });
-// };
 
 @Controller("auth")
 class AuthController {
@@ -144,4 +116,3 @@ class AuthController {
     }
   }
 }
-// spe lasdffk programming here comment and stuff to do
