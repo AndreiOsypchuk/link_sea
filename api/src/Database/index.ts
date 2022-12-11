@@ -90,7 +90,10 @@ export class Database {
   public static async GetUserId(email: string, cb: DBCallback) {
     const user: any = await User.findOne({ email });
     if (!user) {
-      cb(null, new DbError({ message: "Email is incorrect", status: 400 }));
+      cb(
+        null,
+        new DbError({ message: "No user with such email exists", status: 400 })
+      );
     } else {
       const { _id } = user._doc;
       cb(_id, null);

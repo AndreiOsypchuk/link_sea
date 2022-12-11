@@ -12,7 +12,7 @@ export const extractCookies = (header: HeaderWithCookies) => {
   let result: CookieObj = {};
   if (!cookies) return result;
   for (let i in cookies) {
-    const [rawCookie, ...rawFlag] = cookies[i].split("; ");
+    const [rawCookie, ..._rawFlag] = cookies[i].split("; ");
     const [name, value] = rawCookie.split("=");
     result[name as CookieNames] = value;
   }

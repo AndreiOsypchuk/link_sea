@@ -4,7 +4,7 @@
   "description": "",
   "main": "jest.config.js",
   "scripts": {
-    "test": "export DEV=true && jest --no-cache --detectOpenHandles",
+    "test": "export PORT=4444 DEV=true && jest --no-cache --detectOpenHandles",
     "dev": "export DEV=true && nodemon --exec ts-node ./src/index.ts"
   },
   "keywords": [],

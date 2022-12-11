@@ -136,8 +136,17 @@ describe("Authentication", () => {
       });
     });
   });
+  describe("Logout:", () => {
+    const path = "/api/auth/logout";
+
+    it("Should remove cookies from the response header", async () => {
+      const res = await request(app).post(path);
+      expect(extractCookies(res.headers).auth).toBeFalsy();
+    });
+  });
 });
-afterAll(() => {
+afterAll(async () => {
+  await User.deleteMany();
   Database.Destroy();
   serverInstance.close();
 });

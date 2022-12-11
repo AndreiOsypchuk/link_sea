@@ -1,0 +1,45 @@
+version: "3"
+services:
+  db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongovol:/data/db
+    networks:
+      - custom_network
+    container_name: link_sea_db
+  api:
+    build: ./api
+    image: link_sea_api_img
+    ports:
+      - "4000:4000"
+    container_name: link_sea_api
+    networks:
+      - custom_network
+    depends_on:
+      - db
+    volumes:
+      - './api:/app'
+  client:
+    build: ./client
+    image: link_sea_client_img
+    ports:
+      - "3000:3000"
+    networks:
+      - custom_network
+    container_name: link_sea_client
+    networks:
+      - custom_network
+    depends_on:
+      - api
+    volumes:
+      - './client:/app'
+    environment:
+      - CHOKIDAR_USERPOLLING=true
+
+volumes:
+  mongovol:
+networks:
+  custom_network:
+

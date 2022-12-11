@@ -69,9 +69,11 @@ class AuthController {
               if (e) res.status(400).json({ message: e.message });
             });
             if (token) {
-              sendResetEmail(req.body.email, token, (err: any, info: any) => {
+              sendResetEmail(req.body.email, token, (err: any, _info: any) => {
                 if (err) res.status(400).json(err.message);
-                res.status(200).json(info);
+                res
+                  .status(200)
+                  .json({ message: "Email has been sent", success: true });
               });
             }
           }
@@ -114,5 +116,10 @@ class AuthController {
         }
       );
     }
+  }
+  @post("logout")
+  async Logout(_req: Request, res: Response) {
+    res.clearCookie("auth");
+    res.end();
   }
 }
