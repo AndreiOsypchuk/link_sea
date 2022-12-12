@@ -10,3 +10,8 @@ export const BodyType = {
   RESET_PASS: [BodyFields.PASSWORD, BodyFields.TOKEN],
   REQUSET_EMAIL: [BodyFields.EMAIL],
 };
+
+export enum CookieName {
+  ACC = "acc",
+  REF = "ref",
+}

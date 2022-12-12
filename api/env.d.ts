@@ -6,5 +6,7 @@ declare namespace NodeJS {
     DEV: boolean;
     EMAIL_HOST: string;
     EMAIL_PASS: string;
+    REDIS_URI: string;
+    REF_SEC: string;
   }
 }

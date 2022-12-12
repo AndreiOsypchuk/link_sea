@@ -1,7 +1,20 @@
 import { Request, Response } from "express";
 import { Controller, post, get, assure } from "./decorators";
-import { BodyType, tokenize, sendResetEmail, authorize } from "./util";
+import jwt from "jsonwebtoken";
+import {
+  BodyType,
+  CookieName,
+  tokenize,
+  createTokenPair,
+  cookieParams,
+  sendResetEmail,
+  authorize,
+  verifyRefresh,
+} from "./util";
 import { Database, DbError } from "../Database";
+import { TokenStore } from "../Redis";
+
+// Register Login Logout ResetPassword RequestPasswordResetEmail SendResetEmail storeRefreshTokensInRedis
 
 @Controller("auth")
 class AuthController {
@@ -16,15 +29,18 @@ class AuthController {
           res.status(e.status).json({ message: e.message, success: false });
           return;
         } else {
-          const token = tokenize(result._id, (e: any) => {
-            if (e) res.status(400).json({ message: e.message });
-          });
-          if (token) {
-            res.cookie("auth", token, {
-              httpOnly: true,
-              maxAge: 60000 * 60 * 24,
-            });
+          const { ref, acc } = createTokenPair(result._id) || {
+            ref: null,
+            acc: null,
+          };
+
+          if (ref && acc) {
+            TokenStore.StoreToken(result._id, ref);
+            res.cookie(CookieName.ACC, acc, cookieParams(CookieName.ACC));
+            res.cookie(CookieName.REF, ref, cookieParams(CookieName.REF));
             res.status(200).json({ data: result });
+          } else {
+            throw new Error("Token pair did not generate properly");
           }
         }
       });
@@ -39,15 +55,18 @@ class AuthController {
     try {
       await Database.LoginUser(req.body, (result: any, e: DbError | null) => {
         if (e) return res.status(e.status).json({ message: e.message });
-        const token = tokenize(result._id, (e: any) => {
-          if (e) res.status(400).json({ message: e.message });
-        });
-        if (token) {
-          res.cookie("auth", token, {
-            httpOnly: true,
-            maxAge: 60000 * 60 * 24,
-          });
+        const { ref, acc } = createTokenPair(result._id) || {
+          ref: null,
+          acc: null,
+        };
+
+        if (ref && acc) {
+          TokenStore.StoreToken(result._id, ref);
+          res.cookie(CookieName.ACC, acc, cookieParams(CookieName.ACC));
+          res.cookie(CookieName.REF, ref, cookieParams(CookieName.REF));
           res.status(200).json({ data: result });
+        } else {
+          throw new Error("Token pair did not generate properly");
         }
       });
     } catch (e: any) {
@@ -118,11 +137,42 @@ class AuthController {
     }
   }
   @post("logout")
-  async Logout(_req: Request, res: Response) {
-    res.clearCookie("auth");
-    res.end();
+  async Logout(req: Request, res: Response) {
+    try {
+      const { ref }: any = req.cookies;
+      // TODO: make it a separate function something like verifyRefresh
+      if (ref) {
+        const data: any = verifyRefresh(ref);
+        await TokenStore.ClearTokens(data);
+      }
+      res.clearCookie(CookieName.ACC);
+      res.clearCookie(CookieName.REF);
+      res.end();
+    } catch (e: any) {
+      res.status(500).json({ message: e.message, success: false });
+    }
   }
 
   @get("refresh")
-  async Refresh(_req: Request, res: Response) {}
+  async Refresh(req: Request, res: Response) {
+    try {
+      const { ref } = req.cookies;
+      console.log(ref);
+      if (ref) {
+        const data: any = verifyRefresh(ref);
+        const exists = await TokenStore.Check(data, ref);
+        if (exists) {
+          const { acc }: any = createTokenPair(data);
+          res.cookie(CookieName.ACC, acc, cookieParams(CookieName.ACC));
+          res.end();
+        } else {
+          res.status(403).json({ message: "Refresh token is invalid" });
+        }
+      } else {
+        res.status(403).json({ message: "No refresh token", success: false });
+      }
+    } catch (e: any) {
+      res.status(500).json({ message: e.message, success: false });
+    }
+  }
 }

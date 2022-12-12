@@ -7,9 +7,9 @@ dotenv.config();
 import "./Controllers";
 import { router } from "./Controllers/decorators";
 import { Database } from "./Database";
-import { tokenStore } from "./Redis";
+import { TokenStore } from "./Redis";
 
-tokenStore.Test();
+TokenStore.Init();
 Database.Init();
 export const app = express();
 app.use(express.json());
