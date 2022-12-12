@@ -122,4 +122,7 @@ class AuthController {
     res.clearCookie("auth");
     res.end();
   }
+
+  @get("refresh")
+  async Refresh(_req: Request, res: Response) {}
 }
