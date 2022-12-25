@@ -181,7 +181,8 @@ const verifyAccess = async (
 
 authRouter.post("/exists", async (req: Request, res: Response) => {
   try {
-    const { handle } = req.body;
+    const { handle } = req.query;
+    console.log(handle);
     const count = await User.countDocuments({ handle });
     if (count) {
       return res.status(400).json({ message: "User exists" });

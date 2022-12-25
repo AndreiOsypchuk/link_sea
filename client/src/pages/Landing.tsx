@@ -8,7 +8,7 @@ import {
 } from "react-icons/io";
 import { CgSpinner } from "react-icons/cg";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, redirect } from "react-router-dom";
 import { Api } from "../api";
 
 const Ham = () => {
@@ -66,26 +66,10 @@ export const Landing = () => {
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+
   const handleInput = (e: any) => {
     const value = e.target.value;
     setInput((i) => value);
-  };
-
-  const handleSubmit = async (e: any) => {
-    try {
-      setLoading(() => true);
-      e.preventDefault();
-      await wait(4000);
-      console.log(input);
-      const res = await Api.post("/auth/exists", { handle: input });
-      setInput(() => "");
-      setLoading(() => false);
-      console.log(res.data);
-    } catch (e: any) {
-      setLoading(() => false);
-      setError(() => e.message);
-      console.log(e.response.data.message);
-    }
   };
 
   return (
@@ -126,24 +110,20 @@ export const Landing = () => {
             one link.
           </p>
           <div className="m-12" />
-          <form className="flex justify-between" onSubmit={handleSubmit}>
+          <form className="flex justify-between">
             <input
               onChange={handleInput}
               value={input}
               className="h-12 px-4 py-3 rounded-full w-3/5"
               placeholder="links.ea/yourhandle"
             />
-            <button
-              disabled={loading || !input.length}
+            <Link
+              to={input.length ? `/register/${input}` : ""}
               className="text-indigo-900 w-24 flex items-center justify-center font-semibold bg-teal-400 hover:bg-teal-300 px-4 rounded-lg"
               type="submit"
             >
-              {loading ? (
-                <CgSpinner className="animate-spin  text-teal-600 text-2xl" />
-              ) : (
-                "Lets go!"
-              )}
-            </button>
+              "Lets go!"
+            </Link>
           </form>
         </section>
 
