@@ -9,6 +9,7 @@ import {
 import { CgSpinner } from "react-icons/cg";
 import React from "react";
 import { Link } from "react-router-dom";
+import { Api } from "../api";
 
 const Ham = () => {
   const [openBurger, setOpenBurger] = React.useState(false);
@@ -64,18 +65,27 @@ const wait = async (amount: number): Promise<void> => {
 export const Landing = () => {
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
   const handleInput = (e: any) => {
     const value = e.target.value;
     setInput((i) => value);
   };
 
   const handleSubmit = async (e: any) => {
-    setLoading(() => true);
-    e.preventDefault();
-    await wait(4000);
-    console.log(input);
-    setInput(() => "");
-    setLoading(() => false);
+    try {
+      setLoading(() => true);
+      e.preventDefault();
+      await wait(4000);
+      console.log(input);
+      const res = await Api.post("/auth/exists", { handle: input });
+      setInput(() => "");
+      setLoading(() => false);
+      console.log(res.data);
+    } catch (e: any) {
+      setLoading(() => false);
+      setError(() => e.message);
+      console.log(e.response.data.message);
+    }
   };
 
   return (
@@ -120,7 +130,7 @@ export const Landing = () => {
             <input
               onChange={handleInput}
               value={input}
-              className="h-12 px-3 py-1 rounded-full w-3/5"
+              className="h-12 px-4 py-3 rounded-full w-3/5"
               placeholder="links.ea/yourhandle"
             />
             <button

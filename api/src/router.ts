@@ -178,6 +178,20 @@ const verifyAccess = async (
     return res.status(500).json({ message: e.message });
   }
 };
+
+authRouter.post("/exists", async (req: Request, res: Response) => {
+  try {
+    const { handle } = req.body;
+    const count = await User.countDocuments({ handle });
+    if (count) {
+      return res.status(400).json({ message: "User exists" });
+    } else {
+      return res.status(200).json({ message: "Hanlde is available" });
+    }
+  } catch (e: any) {
+    res.status(500).json({ message: e.message });
+  }
+});
 authRouter.post(
   "/update",
   verifyAccess,
