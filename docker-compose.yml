@@ -31,7 +31,7 @@ services:
     depends_on:
       - db
     volumes:
-      - './api:/app'
+      - "./api:/app"
   client:
     build: ./client
     image: link_sea_client_img
@@ -40,12 +40,10 @@ services:
     networks:
       - custom_network
     container_name: link_sea_client
-    networks:
-      - custom_network
     depends_on:
       - api
     volumes:
-      - './client:/app'
+      - "./client:/app"
     environment:
       - CHOKIDAR_USERPOLLING=true
 
@@ -54,4 +52,3 @@ volumes:
   cachevol:
 networks:
   custom_network:
-
