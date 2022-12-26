@@ -73,18 +73,17 @@ export const Landing = () => {
   };
 
   return (
-    <div className="bg-indigo-900 h-full flex flex-col justify-between relative">
+    <div className="bg-zinc-900 h-full flex flex-col justify-between relative bg-[url('/Hero.svg')] bg-repeat overflow-x-hidden">
       <nav className="z-20 py-6 px-6 flex justify-between items-center">
         <div className="flex items-center justify-between">
-          {/* <Logo /> */}
           <LinkSeaLogo />
           <div className="px-2" />
-          <h3 className="font-bold text-white  text-md ">Linksea</h3>
+          <h3 className="font-bold text-zinc-100 text-md ">Linksea</h3>
         </div>
         <Ham />
       </nav>
       <main className=" h-full">
-        <div className="absolute rotate-180 w-full top-0 left-0 fill-white">
+        <div className="absolute rotate-180 w-full top-0 left-0 fill-zinc-100">
           <svg
             data-name="Layer 1"
             xmlns="http://www.w3.org/2000/svg"
@@ -99,13 +98,13 @@ export const Landing = () => {
           </svg>
         </div>
 
-        <section className="px-6 my-24 pb-12">
-          <h1 className="text-white text-3xl font-bold">
+        <section className="px-6 my-24 pb-12 ">
+          <h1 className="text-zinc-200 text-3xl font-bold">
             Link everything you are proud of
           </h1>
-          <i className="text-teal-400 text-3xl font-bold">Here.</i>
+          <i className="text-teal-500 text-3xl font-bold">Here.</i>
           <div className="m-2" />
-          <p className="text-white text-sm font-semibold">
+          <p className="text-zinc-100 text-sm font-semibold">
             Join over 15B+ people and link everything. All in one place. All in
             one link.
           </p>
@@ -114,20 +113,20 @@ export const Landing = () => {
             <input
               onChange={handleInput}
               value={input}
-              className="h-12 px-4 py-3 rounded-full w-3/5"
+              className="h-12 px-4 py-3 rounded-full w-3/5 bg-zinc-100"
               placeholder="links.ea/yourhandle"
             />
             <Link
               to={input.length ? `/register/${input}` : ""}
-              className="text-indigo-900 w-24 flex items-center justify-center font-semibold bg-teal-400 hover:bg-teal-300 px-4 rounded-lg"
+              className="text-zinc-200 w-fit flex items-center justify-center font-semibold bg-teal-600 border border-teal-700 hover:bg-teal-700 hover:border-teal-800 px-4 rounded-lg"
               type="submit"
             >
-              "Lets go!"
+              Lets go!
             </Link>
           </form>
         </section>
 
-        <section className="px-7   text-indigo-900 py-12 bg-white">
+        <section className="px-7   text-indigo-900 py-12 bg-zinc-100  ">
           <h1 className="font-bold text-3xl mb-4">
             Complete controll over{" "}
             <span className="bg-indigo-900 text-teal-400 px-2">

@@ -19,8 +19,10 @@ export const Register = () => {
           await Api.post("auth/exists?handle=" + handle);
           setMessage("Handle is available");
           setInput((s) => ({ ...s, handle }));
-          window.location.replace("/suck"); // Check if exists on Landing
+
+          //window.location.replace("/suck"); // Check if exists on Landing
         } catch (e: any) {
+          console.log(e);
           setMessage("Handle is taken");
         }
       };
