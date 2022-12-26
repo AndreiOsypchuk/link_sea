@@ -1,4 +1,4 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import http from "http";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -11,6 +11,7 @@ const app = express();
 // app.use("/api/");
 app.use(express.json());
 app.use(cookieParser());
+app.options("*", cors() as RequestHandler);
 app.use(cors());
 app.use("/api/auth", authRouter);
 const server = http.createServer(app);
