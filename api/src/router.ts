@@ -185,9 +185,9 @@ authRouter.post("/exists", async (req: Request, res: Response) => {
     console.log(handle);
     const count = await User.countDocuments({ handle });
     if (count) {
-      return res.status(400).json({ message: "User exists" });
+      return res.status(200).json({ exists: true });
     } else {
-      return res.status(200).json({ message: "Hanlde is available" });
+      return res.status(200).json({ exists: false });
     }
   } catch (e: any) {
     res.status(500).json({ message: e.message });
