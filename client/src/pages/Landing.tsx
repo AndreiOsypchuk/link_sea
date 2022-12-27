@@ -132,7 +132,7 @@ export const Landing = () => {
             />
             <Link
               ref={linkRef}
-              to={input.length ? `/register/${input}` : ""}
+              to={input.length ? `/register?handle=${input}` : ""}
               className="text-zinc-200 w-fit flex items-center justify-center font-semibold bg-teal-600 border border-teal-700 hover:bg-teal-700 hover:border-teal-800 px-4 rounded-lg"
               type="submit"
             >
