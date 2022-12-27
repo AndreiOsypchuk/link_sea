@@ -136,7 +136,7 @@ export const Register = () => {
   );
   const [loading, setLoading] = React.useState({ handle: false, main: false });
   const typingTimerId = React.useRef<number>(0);
-  const urlCache = React.useRef(new Map<string, boolean>());
+
   const handleChange = (e: any) => {
     const value = e.target.value;
     const field = e.target.name;
@@ -153,12 +153,14 @@ export const Register = () => {
     setInput((i) => ({ ...i, [field]: value }));
   };
 
+  const urlCache = React.useRef(new Map<string, boolean>()); // caching urls here and responses to prevent too many requests
+
   const handleKeySearch = async (e: any) => {
     clearTimeout(typingTimerId.current);
     const url = `auth/exists?handle=${e.target.value}`;
-    // if (e.target.value.length > 3) console.log(e.target.value);
     setLoading((l) => ({ ...l, handle: true }));
     if (urlCache.current.has(url)) {
+      // if url is in the cache map we pretend we are fetching by waiting half a second and showing a spinner
       await wait(500);
       setLoading((l) => ({ ...l, handle: false }));
       dispatchMessage({
