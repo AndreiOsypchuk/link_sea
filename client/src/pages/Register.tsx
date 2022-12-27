@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ReactComponent as Logo } from "../../Logo.svg";
+import { useQuery } from "react-query";
 import {
   AiOutlineCheckCircle,
   AiOutlineExclamationCircle,
@@ -119,6 +120,7 @@ const messageReducer = (state = initMessageState, action: MessageAction) => {
 };
 
 const wait = async (amount: number): Promise<void> => {
+  console.log("waiting");
   return new Promise((resolve, _reject) => {
     setTimeout(() => {
       console.log("fetched stuff");
@@ -136,6 +138,34 @@ export const Register = () => {
   );
   const [loading, setLoading] = React.useState({ handle: false, main: false });
   const typingTimerId = React.useRef<number>(0);
+  const urlCache = React.useRef(new Map<string, boolean>()); // caching urls here and responses to prevent too many requests
+  const { data, isLoading } = useQuery(["validate-handle"], async () => {
+    const handle = params.get("handle");
+
+    if (handle) {
+      setInput((s) => ({ ...s, handle }));
+      try {
+        const url = "auth/exists?handle=" + handle;
+        const response = await Api.post("auth/exists?handle=" + handle);
+        urlCache.current.set(url, response.data.exits);
+        dispatchMessage({
+          type: response.data.exists
+            ? MessageActionTypes.HANDLE_TAKEN
+            : MessageActionTypes.HANDLE_VALID,
+        });
+        return response.data;
+      } catch (e: any) {
+        if (e.response.status === 400) {
+          dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
+        } else {
+          dispatchMessage({
+            type: MessageActionTypes.SERVER_ERROR,
+          });
+          console.log(e);
+        }
+      }
+    }
+  });
 
   const handleChange = (e: any) => {
     const value = e.target.value;
@@ -152,8 +182,6 @@ export const Register = () => {
     }
     setInput((i) => ({ ...i, [field]: value }));
   };
-
-  const urlCache = React.useRef(new Map<string, boolean>()); // caching urls here and responses to prevent too many requests
 
   const handleKeySearch = async (e: any) => {
     clearTimeout(typingTimerId.current);
@@ -173,7 +201,6 @@ export const Register = () => {
     // 5 sec ago ====================
     const checkIfExists = async () => {
       try {
-        // await wait(1500);
         const { data } = await Api.post(url);
         urlCache.current.set(url, data.exists);
         dispatchMessage({
@@ -185,11 +212,9 @@ export const Register = () => {
       } catch (e: any) {
         if (e.response.status === 400) {
           setLoading((l) => ({ ...l, handle: false }));
-
           dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
         } else {
           setLoading((l) => ({ ...l, handle: false }));
-
           dispatchMessage({
             type: MessageActionTypes.SERVER_ERROR,
           });
@@ -203,41 +228,6 @@ export const Register = () => {
       setLoading((l) => ({ ...l, handle: false }));
     }
   };
-
-  React.useEffect(() => {
-    const handle = params.get("handle");
-
-    console.log(handle);
-    if (handle) {
-      setInput((s) => ({
-        ...s,
-        handle,
-      }));
-      const checkIfExists = async () => {
-        try {
-          setLoading((l) => ({ ...l, handle: true }));
-
-          const { data } = await Api.post("auth/exists?handle=" + handle);
-          dispatchMessage({
-            type: data.exists
-              ? MessageActionTypes.HANDLE_TAKEN
-              : MessageActionTypes.HANDLE_VALID,
-          });
-          setLoading((l) => ({ ...l, handle: false }));
-        } catch (e: any) {
-          if (e.response.status === 400) {
-            dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
-          } else {
-            dispatchMessage({
-              type: MessageActionTypes.SERVER_ERROR,
-            });
-            console.log(e);
-          }
-        }
-      };
-      checkIfExists();
-    }
-  }, [params]);
 
   return (
     <div className="h-screen overflow-scroll w-screen flex flex-col bg-[url('/Hero.svg')] bg-zinc-900">
@@ -278,7 +268,7 @@ export const Register = () => {
               info={messageState.handle}
               onChange={handleChange}
               onKeyUp={handleKeySearch}
-              loading={loading.handle}
+              loading={loading.handle || isLoading}
             />
             <FromInput
               placeholder="Email"
@@ -352,3 +342,4 @@ const FromInput: FC<formInputProps> = ({ info, loading, ...props }) => {
     </div>
   );
 };
+// This is a thing that is a thing hello wthis is a thing and dynamo db and mongo to an extent that it is a premature optimization
