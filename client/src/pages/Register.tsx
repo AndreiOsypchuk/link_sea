@@ -114,12 +114,17 @@ export const Register = () => {
   const handleChange = (e: any) => {
     const value = e.target.value;
     const field = e.target.name;
+    // if (loading.handle) return;
     setInput((i) => ({ ...i, [field]: value }));
   };
 
   const handleHandleChange = async (e: any) => {
     clearTimeout(typingTimerId.current);
+
+    // 5 sec ago ====================
     const checkIfExists = async () => {
+      // if (previousReqRef.current === e.target.value) return;
+
       try {
         setLoading((l) => ({ ...l, handle: true }));
         // await wait(1500);
@@ -154,16 +159,24 @@ export const Register = () => {
 
   React.useEffect(() => {
     const handle = params.get("handle");
+
     console.log(handle);
     if (handle) {
+      setInput((s) => ({
+        ...s,
+        handle,
+      }));
       const checkIfExists = async () => {
         try {
+          setLoading((l) => ({ ...l, handle: true }));
+
           const { data } = await Api.post("auth/exists?handle=" + handle);
           dispatchMessage({
             type: data.exists
               ? MessageActionTypes.HANDLE_TAKEN
               : MessageActionTypes.HANDLE_AVAILABLE,
           });
+          setLoading((l) => ({ ...l, handle: false }));
         } catch (e: any) {
           if (e.response.status === 400) {
             dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
@@ -174,10 +187,6 @@ export const Register = () => {
             console.log(e);
           }
         }
-        setInput((s) => ({
-          ...s,
-          handle,
-        }));
       };
       checkIfExists();
     }
@@ -261,7 +270,7 @@ interface formInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const FromInput: FC<formInputProps> = ({ error, loading, ...props }) => {
   return (
     <div className="w-full">
-      {error?.is ? (
+      {error?.message.length ? (
         <p className="text-red-500 w-full text-xs font-semibold mb-1">
           {error.message}
         </p>
@@ -274,12 +283,12 @@ const FromInput: FC<formInputProps> = ({ error, loading, ...props }) => {
               ? error?.good
                 ? "border-2 border-green-500 outline-green-500"
                 : "border-2 border-red-500 outline-red-500"
-              : null
+              : "border-2 border-zinc-50/10"
           }`}
         />
         {loading ? (
-          <span className="absolute top-1/2 -translate-y-1/2 right-3">
-            <AiOutlineLoading3Quarters className="  text-zinc-500 animate-spin" />
+          <span className="absolute top-1/2 -translate-y-1/2 right-3.5">
+            <AiOutlineLoading3Quarters className="  text-zinc-800 animate-spin" />
           </span>
         ) : error?.is ? (
           error?.good ? (
