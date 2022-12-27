@@ -1,4 +1,5 @@
-import { ReactComponent as LinkSeaLogo } from "../../LinkSeaTab.svg";
+import { ReactComponent as LinkSeaLogo } from "../../Logo.svg";
+// import { ReactComponent as LinkSeaLogo } from "../../LinkSeaTab.svg";
 import {
   IoMdMenu,
   IoLogoGithub,
@@ -6,16 +7,13 @@ import {
   IoMdMail,
   IoMdClose,
 } from "react-icons/io";
-import { CgSpinner } from "react-icons/cg";
 import React from "react";
-import { Link, redirect } from "react-router-dom";
-import { Api } from "../api";
+import { Link } from "react-router-dom";
 
 const Ham = () => {
   const [openBurger, setOpenBurger] = React.useState(false);
   const handleOpen = () => {
     setOpenBurger(() => true);
-    console.log("clicked burger");
   };
   const handleClose = () => {
     setOpenBurger(() => false);
@@ -53,19 +51,8 @@ const Ham = () => {
   );
 };
 
-const wait = async (amount: number): Promise<void> => {
-  return new Promise((resolve, _reject) => {
-    setTimeout(() => {
-      console.log("fetched stuff");
-      resolve();
-    }, amount);
-  });
-};
-
 export const Landing = () => {
   const [input, setInput] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const linkRef = React.useRef<HTMLAnchorElement>(null);
   const handleInput = (e: any) => {
@@ -74,12 +61,10 @@ export const Landing = () => {
   };
   React.useEffect(() => {
     const callback = (e: any) => {
-      if (e.key === "Enter" && e.code === "Enter") {
-        console.log("fired event");
+      if (e.charCode === 13) {
         linkRef.current?.click();
       }
     };
-    console.log("ran");
     inputRef.current?.addEventListener("keypress", callback);
     return () => {
       inputRef.current?.removeEventListener("keypress", callback);
@@ -89,9 +74,9 @@ export const Landing = () => {
     <div className="bg-zinc-900 h-full flex flex-col justify-between relative bg-[url('/Hero.svg')] bg-repeat overflow-x-hidden">
       <nav className="z-20 py-6 px-6 flex justify-between items-center">
         <div className="flex items-center justify-between">
-          <LinkSeaLogo />
+          <LinkSeaLogo className="" />
           <div className="px-2" />
-          <h3 className="font-bold text-zinc-100 text-md ">Linksea</h3>
+          {/* <h3 className="font-bold text-zinc-100 text-md ">Linksea</h3> */}
         </div>
         <Ham />
       </nav>
@@ -181,7 +166,7 @@ export const Landing = () => {
         </section>
       </main>
 
-      <footer className="relative z-50 p-5 mt-12 text-indigo-300  bg-indigo-400/10 flex flex-col justify-center items-center  gap-4">
+      <footer className="relative z-50 pb-5 pt-1 mt-12 text-zinc-300  bg-zinc-400/10 flex flex-col justify-center items-center  gap-4">
         <div className="flex items-center justify-between w-3/6">
           <a href="https://github.com/AndreiOsypchuk/link_sea" target="_blank">
             <IoLogoGithub className="w-6 h-6 " />
@@ -193,8 +178,10 @@ export const Landing = () => {
             <IoMdMail className="w-6 h-6" />
           </a>
         </div>
-        <p className="text-xs">© 2022 Shyer Inc. All rights reserved.</p>
-        <div className="z-30 absolute  w-full top-0 -translate-y-full  left-0 fill-indigo-400/10">
+        <p className="text-xs text-zinc-300/25">
+          © 2022 Shyer Inc. All rights reserved.
+        </p>
+        <div className="z-30 absolute  w-full top-0 -translate-y-full  left-0 fill-zinc-400/10">
           <svg
             data-name="Layer 1"
             xmlns="http://www.w3.org/2000/svg"
