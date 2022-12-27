@@ -66,12 +66,25 @@ export const Landing = () => {
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
-
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const linkRef = React.useRef<HTMLAnchorElement>(null);
   const handleInput = (e: any) => {
     const value = e.target.value;
     setInput((i) => value);
   };
-
+  React.useEffect(() => {
+    const callback = (e: any) => {
+      if (e.key === "Enter" && e.code === "Enter") {
+        console.log("fired event");
+        linkRef.current?.click();
+      }
+    };
+    console.log("ran");
+    inputRef.current?.addEventListener("keypress", callback);
+    return () => {
+      inputRef.current?.removeEventListener("keypress", callback);
+    };
+  }, []);
   return (
     <div className="bg-zinc-900 h-full flex flex-col justify-between relative bg-[url('/Hero.svg')] bg-repeat overflow-x-hidden">
       <nav className="z-20 py-6 px-6 flex justify-between items-center">
@@ -109,21 +122,23 @@ export const Landing = () => {
             one link.
           </p>
           <div className="m-12" />
-          <form className="flex justify-between">
+          <div className="flex justify-between">
             <input
+              ref={inputRef}
               onChange={handleInput}
               value={input}
               className="h-12 px-4 py-3 rounded-full w-3/5 bg-zinc-100"
               placeholder="links.ea/yourhandle"
             />
             <Link
+              ref={linkRef}
               to={input.length ? `/register/${input}` : ""}
               className="text-zinc-200 w-fit flex items-center justify-center font-semibold bg-teal-600 border border-teal-700 hover:bg-teal-700 hover:border-teal-800 px-4 rounded-lg"
               type="submit"
             >
               Lets go!
             </Link>
-          </form>
+          </div>
         </section>
 
         <section className="px-7   text-indigo-900 py-12 bg-zinc-100  ">
