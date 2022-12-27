@@ -12,28 +12,33 @@ const initInput = {
   email: "",
   password: "",
 };
-
+enum StateCase {
+  GOOD,
+  INIT,
+  BAD,
+}
 const initMessageState = {
   handle: {
     message: "",
-    good: false,
+    state: StateCase.INIT,
     is: false,
   },
   email: {
     message: "",
-    good: false,
+    state: StateCase.INIT,
+
     is: false,
   },
   password: {
     message: "",
-    good: false,
+    state: StateCase.INIT,
+
     is: false,
   },
 };
-
 interface Message {
   message: string;
-  good: boolean;
+  state: StateCase;
   is: boolean;
 }
 
@@ -42,23 +47,30 @@ enum MessageActionTypes {
   EMAIL_INVALID,
   PASSWORD_INVALID,
   SERVER_ERROR,
-  HANDLE_AVAILABLE,
+  HANDLE_VALID,
+  HANDLE_INVALID,
+  CLEAR,
 }
-interface ErrorAction {
+interface MessageAction {
   type: MessageActionTypes;
+  message?: string;
 }
-const messageReducer = (state = initMessageState, action: ErrorAction) => {
+const messageReducer = (state = initMessageState, action: MessageAction) => {
   switch (action.type) {
     case MessageActionTypes.HANDLE_TAKEN: {
       return {
         ...state,
-        handle: { message: "Handle is already taken", good: false, is: true },
+        handle: {
+          message: "Handle is already taken",
+          state: StateCase.BAD,
+          is: true,
+        },
       };
     }
     case MessageActionTypes.EMAIL_INVALID: {
       return {
         ...state,
-        email: { message: "Email is invalid", good: false, is: true },
+        email: { message: "Email is invalid", state: StateCase.BAD, is: true },
       };
     }
     case MessageActionTypes.PASSWORD_INVALID: {
@@ -66,7 +78,7 @@ const messageReducer = (state = initMessageState, action: ErrorAction) => {
         ...state,
         password: {
           message: "Password must be at least  6 characters long",
-          good: false,
+          state: StateCase.BAD,
           is: true,
         },
       };
@@ -76,16 +88,29 @@ const messageReducer = (state = initMessageState, action: ErrorAction) => {
         ...state,
         handle: {
           message: "Something happend to the server",
-          good: false,
+          state: StateCase.BAD,
           is: true,
         },
       };
     }
-    case MessageActionTypes.HANDLE_AVAILABLE: {
+    case MessageActionTypes.HANDLE_VALID: {
       return {
         ...state,
-        handle: { message: "", good: true, is: true },
+        handle: { message: "", state: StateCase.GOOD, is: true },
       };
+    }
+    case MessageActionTypes.HANDLE_INVALID: {
+      return {
+        ...state,
+        handle: {
+          message: action.message || "Handle is wrong",
+          state: StateCase.BAD,
+          is: true,
+        },
+      };
+    }
+    case MessageActionTypes.CLEAR: {
+      return initMessageState;
     }
     default: {
       return state;
@@ -111,31 +136,50 @@ export const Register = () => {
   );
   const [loading, setLoading] = React.useState({ handle: false, main: false });
   const typingTimerId = React.useRef<number>(0);
+  const urlCache = React.useRef(new Map<string, boolean>());
   const handleChange = (e: any) => {
     const value = e.target.value;
     const field = e.target.name;
-    // if (loading.handle) return;
+    if (e.target.name === "handle") {
+      if (e.target.value.length <= 3) {
+        dispatchMessage({
+          type: MessageActionTypes.HANDLE_INVALID,
+          message: "Handle must be at least 4 characters long",
+        });
+      } else {
+        dispatchMessage({ type: MessageActionTypes.HANDLE_VALID });
+      }
+    }
     setInput((i) => ({ ...i, [field]: value }));
   };
 
-  const handleHandleChange = async (e: any) => {
+  const handleKeySearch = async (e: any) => {
     clearTimeout(typingTimerId.current);
-
+    const url = `auth/exists?handle=${e.target.value}`;
+    // if (e.target.value.length > 3) console.log(e.target.value);
+    setLoading((l) => ({ ...l, handle: true }));
+    if (urlCache.current.has(url)) {
+      await wait(500);
+      setLoading((l) => ({ ...l, handle: false }));
+      dispatchMessage({
+        type: urlCache.current.get(url)
+          ? MessageActionTypes.HANDLE_TAKEN
+          : MessageActionTypes.HANDLE_VALID,
+      });
+      return;
+    }
     // 5 sec ago ====================
     const checkIfExists = async () => {
-      // if (previousReqRef.current === e.target.value) return;
-
       try {
-        setLoading((l) => ({ ...l, handle: true }));
         // await wait(1500);
-        const { data } = await Api.post("auth/exists?handle=" + e.target.value);
-
-        setLoading((l) => ({ ...l, handle: false }));
+        const { data } = await Api.post(url);
+        urlCache.current.set(url, data.exists);
         dispatchMessage({
           type: data.exists
             ? MessageActionTypes.HANDLE_TAKEN
-            : MessageActionTypes.HANDLE_AVAILABLE,
+            : MessageActionTypes.HANDLE_VALID,
         });
+        setLoading((l) => ({ ...l, handle: false }));
       } catch (e: any) {
         if (e.response.status === 400) {
           setLoading((l) => ({ ...l, handle: false }));
@@ -150,10 +194,11 @@ export const Register = () => {
           console.log(e);
         }
       }
-      setLoading((l) => ({ ...l, handle: false }));
     };
-    if (e.target.value.length) {
+    if (e.target.value.length > 3) {
       typingTimerId.current = setTimeout(checkIfExists, 700);
+    } else {
+      setLoading((l) => ({ ...l, handle: false }));
     }
   };
 
@@ -174,7 +219,7 @@ export const Register = () => {
           dispatchMessage({
             type: data.exists
               ? MessageActionTypes.HANDLE_TAKEN
-              : MessageActionTypes.HANDLE_AVAILABLE,
+              : MessageActionTypes.HANDLE_VALID,
           });
           setLoading((l) => ({ ...l, handle: false }));
         } catch (e: any) {
@@ -228,9 +273,9 @@ export const Register = () => {
               placeholder="links.ea/yourhandle"
               name="handle"
               value={input.handle}
-              error={messageState.handle}
+              info={messageState.handle}
               onChange={handleChange}
-              onKeyUp={handleHandleChange}
+              onKeyUp={handleKeySearch}
               loading={loading.handle}
             />
             <FromInput
@@ -238,7 +283,7 @@ export const Register = () => {
               type="email"
               name="email"
               value={input.email}
-              error={messageState.email}
+              info={messageState.email}
               onChange={handleChange}
             />
             <FromInput
@@ -246,7 +291,7 @@ export const Register = () => {
               name="password"
               type="password"
               value={input.password}
-              error={messageState.password}
+              info={messageState.password}
               onChange={handleChange}
             />
           </span>
@@ -264,23 +309,23 @@ export const Register = () => {
   );
 };
 interface formInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  error?: Message;
+  info?: Message;
   loading?: boolean;
 }
-const FromInput: FC<formInputProps> = ({ error, loading, ...props }) => {
+const FromInput: FC<formInputProps> = ({ info, loading, ...props }) => {
   return (
     <div className="w-full">
-      {error?.message.length ? (
+      {info?.message.length ? (
         <p className="text-red-500 w-full text-xs font-semibold mb-1">
-          {error.message}
+          {info.message}
         </p>
       ) : null}
       <span className="w-full relative flex items-center">
         <input
           {...props}
           className={`rounded-md px-3 pr-10 py-3 w-full ${
-            error?.is
-              ? error?.good
+            info?.is
+              ? info?.state === StateCase.GOOD
                 ? "border-2 border-green-500 outline-green-500"
                 : "border-2 border-red-500 outline-red-500"
               : "border-2 border-zinc-50/10"
@@ -290,8 +335,8 @@ const FromInput: FC<formInputProps> = ({ error, loading, ...props }) => {
           <span className="absolute top-1/2 -translate-y-1/2 right-3.5">
             <AiOutlineLoading3Quarters className="  text-zinc-800 animate-spin" />
           </span>
-        ) : error?.is ? (
-          error?.good ? (
+        ) : info?.is ? (
+          info?.state === StateCase.GOOD ? (
             <span className="absolute top-1/2 -translate-y-1/2 right-3">
               <AiOutlineCheckCircle className="  text-green-500 h-5 w-5" />
             </span>
