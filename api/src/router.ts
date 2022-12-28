@@ -52,7 +52,7 @@ authRouter.post("/register", async (req: Request, res: Response) => {
     newUser.save((e: any, result: any) => {
       if (e && e.code === 11000) {
         return res
-          .status(200)
+          .status(400)
           .json({ message: "Handle or Email is already in use" });
       } else {
         console.log(result);
