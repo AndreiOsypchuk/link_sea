@@ -8,6 +8,8 @@ import {
   AiOutlineLoading3Quarters,
 } from "react-icons/ai";
 import { Api } from "../api";
+import { RootActionType, RootContext } from "../store";
+// TODO: This is a mess
 const initInput = {
   handle: "",
   email: "",
@@ -56,6 +58,7 @@ interface MessageAction {
   type: MessageActionTypes;
   message?: string;
 }
+// TODO: wtf
 const messageReducer = (state = initMessageState, action: MessageAction) => {
   switch (action.type) {
     case MessageActionTypes.HANDLE_TAKEN: {
@@ -129,6 +132,9 @@ const wait = async (amount: number): Promise<void> => {
 interface ExistsResponse {
   exists: boolean;
 }
+
+const validHandle: RegExp = /^[a-z][a-z0-9-_]{3,32}$/;
+
 export const Register = () => {
   const [params] = useSearchParams();
   const [input, setInput] = React.useState(initInput);
@@ -173,65 +179,144 @@ export const Register = () => {
     let value = e.target.value;
     const field = e.target.name;
     if (field === "handle") {
-      value.toLowerCase();
+      // const validate = /^[a-z][a-z0-9-_]{3,32}$/;
+      // console.log(value, "is correct", validate.test(value));
+      // value.toLowerCase();
       if (e.target.value.length <= 3) {
         dispatchMessage({
           type: MessageActionTypes.HANDLE_INVALID,
           message: "Handle must be at least 4 characters long",
         });
+      } else if (!validHandle.test(value)) {
+        dispatchMessage({
+          type: MessageActionTypes.HANDLE_INVALID,
+          message:
+            "Handle can have only alphanumeric characters and underscores",
+        });
       } else {
         dispatchMessage({ type: MessageActionTypes.HANDLE_VALID });
       }
     } else if (field === "email") {
+      // TODO:
+    } else if (field === "password") {
+      // TODO:
     }
     setInput((i) => ({ ...i, [field]: value }));
   };
 
+  // FIXME: something with state of the label being set before api call fullfills should set to INIT state when typing
   const handleKeySearch = async (e: any) => {
-    clearTimeout(typingTimerId.current);
-    const url = `auth/exists?handle=${e.target.value}`;
     setLoading((l) => ({ ...l, handle: true }));
-    if (urlCache.current.has(url)) {
-      // if url is in the cache map we pretend we are fetching by waiting half a second and showing a spinner
-      await wait(500);
-      setLoading((l) => ({ ...l, handle: false }));
-      dispatchMessage({
-        type: urlCache.current.get(url)
-          ? MessageActionTypes.HANDLE_TAKEN
-          : MessageActionTypes.HANDLE_VALID,
-      });
-      return;
-    }
-    // 5 sec ago ====================
-    const checkIfExists = async () => {
-      try {
-        const { data } = await Api.post<ExistsResponse>(url);
-        urlCache.current.set(url, data.exists);
+    if (validHandle.test(e.target.value)) {
+      // Clear previous timeout set on keyUp
+      clearTimeout(typingTimerId.current);
+      // Start spining the spinner
+      // Check cache
+      const url = `auth/exists?handle=${e.target.value}`;
+      // Pretend we are fetching
+      if (urlCache.current.has(url)) {
+        // Retrieve previous api result from cache
+        const result = urlCache.current.get(url);
+
+        // Display label on handle input
         dispatchMessage({
-          type: data.exists
+          type: result
             ? MessageActionTypes.HANDLE_TAKEN
             : MessageActionTypes.HANDLE_VALID,
         });
-        setLoading((l) => ({ ...l, handle: false }));
-      } catch (e: any) {
-        if (e.response.status === 400) {
-          setLoading((l) => ({ ...l, handle: false }));
-          dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
-        } else {
-          setLoading((l) => ({ ...l, handle: false }));
-          dispatchMessage({
-            type: MessageActionTypes.SERVER_ERROR,
-          });
-          console.log(e);
-        }
+      } else {
+        // If it's a cache miss check if handle is taken
+
+        const validateOnKeyPress = async () => {
+          try {
+            // Make an API call
+            const {
+              data: { exists },
+            } = await Api.post<ExistsResponse>(url);
+            // Cache response and url for later
+            urlCache.current.set(url, exists);
+
+            // Display label on handle input
+            dispatchMessage({
+              type: exists
+                ? MessageActionTypes.HANDLE_TAKEN
+                : MessageActionTypes.HANDLE_VALID,
+            });
+          } catch (e: any) {
+            console.log(e);
+          }
+        };
+        typingTimerId.current = setTimeout(validateOnKeyPress, 700);
       }
-    };
-    if (e.target.value.length > 3) {
-      typingTimerId.current = setTimeout(checkIfExists, 700);
-    } else {
-      setLoading((l) => ({ ...l, handle: false }));
+      // Stop spinning
+    }
+    setLoading((l) => ({ ...l, handle: false }));
+  };
+  const { dispatch } = React.useContext(RootContext);
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    try {
+      const res = await Api.post("auth/register", input);
+      dispatch({ type: RootActionType.LOGIN });
+      console.log(res);
+    } catch (e: any) {
+      if (e.response?.status === 400) {
+        console.log(e.response.data);
+        dispatchMessage({
+          type: MessageActionTypes.HANDLE_INVALID,
+          message: e.response.data.message,
+        });
+      } else {
+        console.log(e);
+      }
     }
   };
+
+  // const handleKeySearch1 = async (e: any) => {
+  //   clearTimeout(typingTimerId.current);
+  //   const url = `auth/exists?handle=${e.target.value}`;
+  //   setLoading((l) => ({ ...l, handle: true }));
+  //   if (urlCache.current.has(url)) {
+  //     // if url is in the cache map we pretend we are fetching by waiting half a second and showing a spinner
+  //     await wait(500);
+  //     setLoading((l) => ({ ...l, handle: false }));
+  //     dispatchMessage({
+  //       type: urlCache.current.get(url)
+  //         ? MessageActionTypes.HANDLE_TAKEN
+  //         : MessageActionTypes.HANDLE_VALID,
+  //     });
+  //     return;
+  //   }
+  //   // 5 sec ago ====================
+  //   const checkIfExists = async () => {
+  //     try {
+  //       const { data } = await Api.post<ExistsResponse>(url);
+  //       urlCache.current.set(url, data.exists);
+  //       dispatchMessage({
+  //         type: data.exists
+  //           ? MessageActionTypes.HANDLE_TAKEN
+  //           : MessageActionTypes.HANDLE_VALID,
+  //       });
+  //       setLoading((l) => ({ ...l, handle: false }));
+  //     } catch (e: any) {
+  //       if (e.response.status === 400) {
+  //         setLoading((l) => ({ ...l, handle: false }));
+  //         dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
+  //       } else {
+  //         setLoading((l) => ({ ...l, handle: false }));
+  //         dispatchMessage({
+  //           type: MessageActionTypes.SERVER_ERROR,
+  //         });
+  //         console.log(e);
+  //       }
+  //     }
+  //   };
+  //   if (validHandle.test(e.target.value)) {
+  //     typingTimerId.current = setTimeout(checkIfExists, 700);
+  //   } else {
+  //     setLoading((l) => ({ ...l, handle: false }));
+  //   }
+  // };
 
   return (
     <div className="h-screen overflow-scroll w-screen flex flex-col bg-[url('/Hero.svg')] bg-zinc-900">
@@ -263,7 +348,10 @@ export const Register = () => {
             Choose your Linksea handle. You can always change it later
           </p>
         </section>
-        <form className="flex items-center flex-col w-full gap-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center flex-col w-full gap-4"
+        >
           <span className="flex items-center flex-col gap-3 w-full">
             <FromInput
               placeholder="links.ea/yourhandle"
