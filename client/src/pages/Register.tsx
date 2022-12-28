@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { ReactComponent as Logo } from "../../Logo.svg";
 import { useQuery } from "react-query";
 import {
@@ -145,36 +145,38 @@ export const Register = () => {
   const [loading, setLoading] = React.useState({ handle: false, main: false });
   const typingTimerId = React.useRef<number>(0);
   const urlCache = React.useRef(new Map<string, boolean>()); // caching urls here and responses to prevent too many requests
-  const { isLoading } = useQuery(["validate-handle"], async () => {
-    const handle = params.get("handle");
-
-    if (handle) {
-      setInput((s) => ({ ...s, handle }));
-      try {
-        const url = "auth/exists?handle=" + handle;
-        const response = await Api.post<ExistsResponse>(
-          "auth/exists?handle=" + handle
-        );
-        urlCache.current.set(url, response.data.exists);
-        dispatchMessage({
-          type: response.data.exists
-            ? MessageActionTypes.HANDLE_TAKEN
-            : MessageActionTypes.HANDLE_VALID,
-        });
-        return response.data;
-      } catch (e: any) {
-        if (e.response.status === 400) {
-          dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
-        } else {
+  const { isLoading } = useQuery(
+    ["validate-handle"],
+    async () => {
+      const handle = params.get("handle");
+      if (handle) {
+        setInput((s) => ({ ...s, handle }));
+        try {
+          const url = "auth/exists?handle=" + handle;
+          const response = await Api.post<ExistsResponse>(
+            "auth/exists?handle=" + handle
+          );
+          urlCache.current.set(url, response.data.exists);
           dispatchMessage({
-            type: MessageActionTypes.SERVER_ERROR,
+            type: response.data.exists
+              ? MessageActionTypes.HANDLE_TAKEN
+              : MessageActionTypes.HANDLE_VALID,
           });
-          console.log(e);
+          return response.data;
+        } catch (e: any) {
+          if (e.response.status === 400) {
+            dispatchMessage({ type: MessageActionTypes.HANDLE_TAKEN });
+          } else {
+            dispatchMessage({
+              type: MessageActionTypes.SERVER_ERROR,
+            });
+            console.log(e);
+          }
         }
       }
-    }
-  });
-
+    },
+    { refetchOnWindowFocus: false }
+  );
   const handleChange = (e: any) => {
     let value = e.target.value;
     const field = e.target.name;
@@ -252,12 +254,15 @@ export const Register = () => {
     }
     setLoading((l) => ({ ...l, handle: false }));
   };
+
   const { dispatch } = React.useContext(RootContext);
+  const navigate = useNavigate();
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
       const res = await Api.post("auth/register", input);
       dispatch({ type: RootActionType.LOGIN });
+      navigate("/" + input.handle, { replace: true });
       console.log(res);
     } catch (e: any) {
       if (e.response?.status === 400) {
