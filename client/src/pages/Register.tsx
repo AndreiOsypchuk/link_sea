@@ -120,15 +120,15 @@ const messageReducer = (state = initMessageState, action: MessageAction) => {
 };
 
 const wait = async (amount: number): Promise<void> => {
-  console.log("waiting");
   return new Promise((resolve, _reject) => {
     setTimeout(() => {
-      console.log("fetched stuff");
       resolve();
     }, amount);
   });
 };
-
+interface ExistsResponse {
+  exists: boolean;
+}
 export const Register = () => {
   const [params] = useSearchParams();
   const [input, setInput] = React.useState(initInput);
@@ -139,15 +139,17 @@ export const Register = () => {
   const [loading, setLoading] = React.useState({ handle: false, main: false });
   const typingTimerId = React.useRef<number>(0);
   const urlCache = React.useRef(new Map<string, boolean>()); // caching urls here and responses to prevent too many requests
-  const { data, isLoading } = useQuery(["validate-handle"], async () => {
+  const { isLoading } = useQuery(["validate-handle"], async () => {
     const handle = params.get("handle");
 
     if (handle) {
       setInput((s) => ({ ...s, handle }));
       try {
         const url = "auth/exists?handle=" + handle;
-        const response = await Api.post("auth/exists?handle=" + handle);
-        urlCache.current.set(url, response.data.exits);
+        const response = await Api.post<ExistsResponse>(
+          "auth/exists?handle=" + handle
+        );
+        urlCache.current.set(url, response.data.exists);
         dispatchMessage({
           type: response.data.exists
             ? MessageActionTypes.HANDLE_TAKEN
@@ -168,9 +170,10 @@ export const Register = () => {
   });
 
   const handleChange = (e: any) => {
-    const value = e.target.value;
+    let value = e.target.value;
     const field = e.target.name;
-    if (e.target.name === "handle") {
+    if (field === "handle") {
+      value.toLowerCase();
       if (e.target.value.length <= 3) {
         dispatchMessage({
           type: MessageActionTypes.HANDLE_INVALID,
@@ -179,6 +182,7 @@ export const Register = () => {
       } else {
         dispatchMessage({ type: MessageActionTypes.HANDLE_VALID });
       }
+    } else if (field === "email") {
     }
     setInput((i) => ({ ...i, [field]: value }));
   };
@@ -201,7 +205,7 @@ export const Register = () => {
     // 5 sec ago ====================
     const checkIfExists = async () => {
       try {
-        const { data } = await Api.post(url);
+        const { data } = await Api.post<ExistsResponse>(url);
         urlCache.current.set(url, data.exists);
         dispatchMessage({
           type: data.exists
@@ -308,7 +312,7 @@ const FromInput: FC<formInputProps> = ({ info, loading, ...props }) => {
   return (
     <div className="w-full">
       {info?.message.length ? (
-        <p className="text-red-500 w-full text-xs font-semibold mb-1">
+        <p className="text-red-500 w-full text-xs font-semibold mb-1 animate-shake">
           {info.message}
         </p>
       ) : null}
